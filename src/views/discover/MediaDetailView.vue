@@ -3,7 +3,7 @@ import { useToast } from 'vue-toast-notification'
 import PersonCardSlideView from './PersonCardSlideView.vue'
 import MediaCardSlideView from './MediaCardSlideView.vue'
 import api from '@/api'
-import type { MediaInfo, NotExistMediaInfo, Subscribe, TmdbEpisode } from '@/api/types'
+import type { MediaInfo, NotExistMediaInfo, Subscribe, TmdbEpisode, Site } from '@/api/types'
 import NoDataFound from '@/components/NoDataFound.vue'
 import { doneNProgress, startNProgress } from '@/api/nprogress'
 import { formatSeason } from '@/@core/utils/formatters'
@@ -54,6 +54,26 @@ const seasonsSubscribed = ref<{ [key: number]: boolean }>({})
 
 // 订阅编号
 const subscribeId = ref<number>()
+
+// 所有站点
+const allSites = ref<Site[]>([])
+
+// 搜索的站点
+const searchSite = ref<number>()
+
+// 查询所有站点
+async function querySites() {
+  try {
+    const data: Site[] = await api.get('site/')
+    // 过滤站点，只有启用的站点才显示
+    allSites.value = data.filter(item => item.is_active)
+    searchSite.value = undefined
+  } catch (error) {
+    console.log(error)
+    allSites.value = []
+    searchSite.value = undefined
+  }
+}
 
 // 获得mediaid
 function getMediaId() {
@@ -404,6 +424,7 @@ function handleSearch(area: string) {
       type: mediaDetail.value.type,
       area,
       season: mediaDetail.value.season,
+      site: searchSite.value,
     },
   })
 }
@@ -451,6 +472,7 @@ function onSubscribeEditRemove() {
 }
 
 onBeforeMount(() => {
+  querySites()
   getMediaDetail()
 })
 </script>
@@ -506,6 +528,17 @@ onBeforeMount(() => {
           </span>
         </div>
         <div class="media-actions">
+          <VSelect
+            v-model="searchSite"
+            class="mb-2 mr-2"
+            variant="underlined"
+            :items="allSites"
+            item-title="name"
+            item-value="id"
+            label="指定搜索站点"
+            width="10rem"
+            clearable
+          />
           <VBtn
             v-if="(mediaDetail.tmdb_id || mediaDetail.douban_id || mediaDetail.bangumi_id) && mediaDetail.imdb_id"
             variant="tonal"
