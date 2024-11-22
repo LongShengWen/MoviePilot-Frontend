@@ -59,7 +59,7 @@ const subscribeId = ref<number>()
 const allSites = ref<Site[]>([])
 
 // 搜索的站点
-const searchSite = ref<number>()
+const searchSites = ref<number[]>()
 
 // 查询所有站点
 async function querySites() {
@@ -67,11 +67,11 @@ async function querySites() {
     const data: Site[] = await api.get('site/')
     // 过滤站点，只有启用的站点才显示
     allSites.value = data.filter(item => item.is_active)
-    searchSite.value = undefined
+    searchSites.value = undefined
   } catch (error) {
     console.log(error)
     allSites.value = []
-    searchSite.value = undefined
+    searchSites.value = undefined
   }
 }
 
@@ -424,7 +424,7 @@ function handleSearch(area: string) {
       type: mediaDetail.value.type,
       area,
       season: mediaDetail.value.season,
-      site: searchSite.value,
+      sites: JSON.stringify(searchSites.value),
     },
   })
 }
@@ -529,16 +529,24 @@ onBeforeMount(() => {
         </div>
         <div class="media-actions">
           <VSelect
-            v-model="searchSite"
+            v-model="searchSites"
             class="mb-2 mr-2"
             variant="underlined"
             :items="allSites"
             item-title="name"
             item-value="id"
             label="指定搜索站点"
-            width="10rem"
+            width="12rem"
+            multiple
             clearable
-          />
+          >
+            <template v-slot:selection="{ item, index }">
+              <VChip v-if="index < 1" variant="outlined">
+                <span>{{ item.title }}</span>
+              </VChip>
+              <span v-if="index === 1" class="text-grey text-caption align-self-center"> ...</span>
+            </template>
+          </VSelect>
           <VBtn
             v-if="(mediaDetail.tmdb_id || mediaDetail.douban_id || mediaDetail.bangumi_id) && mediaDetail.imdb_id"
             variant="tonal"

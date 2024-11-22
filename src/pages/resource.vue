@@ -26,7 +26,7 @@ const area = route.query?.area?.toString() ?? ''
 const season = route.query?.season?.toString() ?? ''
 
 // 搜索的站点
-const site = route.query?.site?.toString() ?? ''
+const sites = route.query?.sites?.toString() ?? ''
 
 // 视图类型，从localStorage中读取
 const viewType = ref<string>(localStorage.getItem('MPTorrentsViewType') ?? 'card')
@@ -92,7 +92,7 @@ async function fetchData() {
             mtype: type,
             area,
             season,
-            site,
+            sites,
           },
         })
       } else {
@@ -100,7 +100,7 @@ async function fetchData() {
         result = await api.get(`search/title`, {
           params: {
             keyword,
-            site,
+            sites,
           },
         })
       }
